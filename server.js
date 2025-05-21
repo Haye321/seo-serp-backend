@@ -7,21 +7,26 @@ const searchRanking = require('./routes/locakRankingRoute');
 const chatRoutes = require('./routes/chatRoutes');
 
 dotenv.config();
-connectDB();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Connect to database
+connectDB().catch(err => {
+  console.error('Database connection error:', err);
+  process.exit(1);
+});
+
+// Routes
 app.use('/api/search', searchRoutes);
 app.use('/api/search/phase2', searchRanking);
 app.use('/api', chatRoutes);
 
-// Only listen if not in serverless environment
-if (process.env.NODE_ENV !== 'production') {
+// For local development only
+if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-// Export wrapped handler for Vercel
-const serverless = require('serverless-http');
-module.exports = serverless(app);
+module.exports = app;
